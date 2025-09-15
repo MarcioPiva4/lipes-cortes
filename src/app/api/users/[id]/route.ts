@@ -1,49 +1,71 @@
-import { PrismaClient } from '@prisma/client';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await context.params;
+
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true, nome: true, email: true, telefone: true, role: true },
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
+      return NextResponse.json({ message: "Usuário não encontrado" }, { status: 404 });
     }
 
     return NextResponse.json(user);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Erro ao buscar usuário", error: (error as Error).message },
+      { status: 500 }
+    );
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const body = await req.json();
-  const { nome, email, telefone, senha, role } = body;
-
+export async function PUT(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const usuarioAtualizado = await prisma.user.update({
-      where: { id: params.id },
+    const { id } = await context.params;
+    const { nome, email, telefone, senha, role } = await req.json();
+
+    const userAtualizado = await prisma.user.update({
+      where: { id },
       data: { nome, email, telefone, senha, role },
     });
 
-    return NextResponse.json(usuarioAtualizado);
-  } catch (error: any) {
-    return NextResponse.json({ error: 'Erro ao atualizar usuário: ' + error.message }, { status: 500 });
+    return NextResponse.json(userAtualizado);
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Erro ao atualizar usuário", error: (error as Error).message },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await context.params;
+
     await prisma.user.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
-    return NextResponse.json({ message: 'Usuário deletado com sucesso' });
-  } catch (error: any) {
-    return NextResponse.json({ error: 'Erro ao deletar usuário: ' + error.message }, { status: 500 });
+    return NextResponse.json({ message: "Usuário deletado com sucesso" });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Erro ao deletar usuário", error: (error as Error).message },
+      { status: 500 }
+    );
   }
 }
