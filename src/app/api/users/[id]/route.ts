@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { withCORS } from "@/lib/cors";
 
 const prisma = new PrismaClient();
 
@@ -16,15 +17,15 @@ export async function GET(
     });
 
     if (!user) {
-      return NextResponse.json({ message: "Usuário não encontrado" }, { status: 404 });
+      return withCORS(NextResponse.json({ message: "Usuário não encontrado" }, { status: 404 }));
     }
 
-    return NextResponse.json(user);
+    return withCORS(NextResponse.json(user));
   } catch (error) {
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { message: "Erro ao buscar usuário", error: (error as Error).message },
       { status: 500 }
-    );
+    ));
   }
 }
 
@@ -41,12 +42,12 @@ export async function PUT(
       data: { nome, email, telefone, senha, role },
     });
 
-    return NextResponse.json(userAtualizado);
+    return withCORS(NextResponse.json(userAtualizado));
   } catch (error) {
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { message: "Erro ao atualizar usuário", error: (error as Error).message },
       { status: 500 }
-    );
+    ));
   }
 }
 
@@ -61,11 +62,11 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: "Usuário deletado com sucesso" });
+    return withCORS(NextResponse.json({ message: "Usuário deletado com sucesso" }));
   } catch (error) {
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { message: "Erro ao deletar usuário", error: (error as Error).message },
       { status: 500 }
-    );
+    ));
   }
 }

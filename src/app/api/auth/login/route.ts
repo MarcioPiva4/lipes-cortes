@@ -35,6 +35,7 @@ export async function POST(req: Request) {
     // Cria a resposta com os cookies corretamente configurados
     const response = NextResponse.json({ 
       token, 
+      headers: { "Access-Control-Allow-Origin": "*" },
       user: { id: user.id, nome: user.nome, role: user.role }
     });
 

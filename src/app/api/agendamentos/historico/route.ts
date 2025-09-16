@@ -1,3 +1,4 @@
+import { withCORS } from "@/lib/cors";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -8,7 +9,7 @@ export async function GET(req: NextRequest) {
   const periodo = searchParams.get("periodo");
 
   if (!periodo) {
-    return NextResponse.json({ error: "Período inválido" }, { status: 400 });
+    return withCORS(NextResponse.json({ error: "Período inválido" }, { status: 400 }));
   }
 
   try {
@@ -34,9 +35,9 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(agendamentos);
+    return withCORS(NextResponse.json(agendamentos));
   } catch (error) {
     console.error("Erro ao buscar histórico de agendamentos:", error);
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
+    return withCORS(NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 }));
   }
 }

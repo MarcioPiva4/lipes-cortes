@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { withCORS } from '@/lib/cors';
 
 export async function POST() {
   (await cookies()).set({
@@ -12,5 +13,5 @@ export async function POST() {
     maxAge: 0,
   });
 
-  return NextResponse.json({ message: 'Logout realizado com sucesso' }, { status: 200 });
+  return withCORS(NextResponse.json({ message: 'Logout realizado com sucesso' }, { status: 200 }));
 }

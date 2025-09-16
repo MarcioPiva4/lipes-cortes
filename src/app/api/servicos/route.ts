@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { withCORS } from "@/lib/cors";
 
 const prisma = new PrismaClient();
 interface ServicoParams {
@@ -9,12 +10,12 @@ interface ServicoParams {
 export async function GET() {
   try {
     const servicos = await prisma.servico.findMany();
-    return NextResponse.json(servicos);
+    return withCORS(NextResponse.json(servicos));
   } catch (error) {
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { message: "Erro ao buscar serviços", error },
       { status: 500 }
-    );
+    ));
   }
 }
 
@@ -34,11 +35,11 @@ export async function POST(req: NextRequest) {
       data: { nome, descricao, preco },
     });
 
-    return NextResponse.json(novoServico, { status: 201 });
+    return withCORS(NextResponse.json(novoServico, { status: 201 }));
   } catch (error) {
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { message: "Erro ao criar serviço", error },
       { status: 500 }
-    );
+    ));
   }
 }

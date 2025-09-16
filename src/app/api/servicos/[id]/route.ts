@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { withCORS } from "@/lib/cors";
 
 const prisma = new PrismaClient();
 
@@ -8,7 +9,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       const { id } = await context.params;
   
       if (!id) {
-        return NextResponse.json({ message: "ID do serviço não fornecido" }, { status: 400 });
+        return withCORS(NextResponse.json({ message: "ID do serviço não fornecido" }, { status: 400 }));
       }
   
       const data = await request.json();
@@ -18,9 +19,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         data,
       });
   
-      return NextResponse.json(servicoAtualizado);
+      return withCORS(NextResponse.json(servicoAtualizado));
     } catch (error) {
-      return NextResponse.json({ message: "Erro ao atualizar serviço", error }, { status: 500 });
+      return withCORS(NextResponse.json({ message: "Erro ao atualizar serviço", error }, { status: 500 }));
     }
   }
 
@@ -30,12 +31,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
       await prisma.servico.delete({ where: { id } });
   
-      return NextResponse.json({ message: "Serviço excluído com sucesso" });
+      return withCORS(NextResponse.json({ message: "Serviço excluído com sucesso" }));
     } catch (error) {
-      return NextResponse.json(
+      return withCORS(NextResponse.json(
         { message: "Erro ao excluir serviço", error },
         { status: 500 }
-      );
+      ));
     }
   }
   
