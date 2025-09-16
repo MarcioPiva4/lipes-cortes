@@ -5,12 +5,12 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 export async function OPTIONS() {
-  return NextResponse.json(null, {
+  return new Response(null, {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
 }
@@ -19,43 +19,58 @@ export async function POST(req: Request) {
   try {
     const { nome, email, telefone, senha, role } = await req.json();
 
+    // Verifica se já existe usuário com o email
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: "E-mail já cadastrado!" }, {
-        status: 400,
-        headers: { "Access-Control-Allow-Origin": "*" },
-      });
+      return new Response(
+        JSON.stringify({ error: "E-mail já cadastrado!" }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
     }
 
+    // Cria hash da senha
     const hashedPassword = await bcrypt.hash(senha, 10);
 
+    // Cria usuário no banco
     const newUser = await prisma.user.create({
       data: {
         nome,
         email,
         telefone,
         senha: hashedPassword,
-        role: "USER",
+        role: role ?? "USER",
       },
     });
 
-    return NextResponse.json(
-      { message: "Usuário cadastrado com sucesso!" },
+    return new Response(
+      JSON.stringify({ message: "Usuário cadastrado com sucesso!" }),
       {
         status: 201,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
       }
     );
   } catch (error) {
     console.error("Erro ao criar usuário:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
+    return new Response(
+      JSON.stringify({ error: "Erro interno do servidor" }),
       {
         status: 500,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
       }
     );
   }
