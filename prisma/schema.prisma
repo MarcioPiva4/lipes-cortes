@@ -8,8 +8,9 @@ datasource db {
 }
 
 enum Role {
-  USER  
-  ADMIN 
+  USER
+  ADMIN
+  BARBEIRO
 }
 
 enum StatusAgendamento {
@@ -19,23 +20,23 @@ enum StatusAgendamento {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  nome      String    @db.VarChar(100)
-  email     String    @unique @db.VarChar(255)
-  telefone  String?   @db.VarChar(20)
-  senha     String    @db.VarChar(255)
-  role      Role      @default(USER)
+  id           String         @id @default(uuid())
+  nome         String         @db.VarChar(100)
+  email        String         @unique @db.VarChar(255)
+  telefone     String?        @db.VarChar(20)
+  senha        String         @db.VarChar(255)
+  role         Role           @default(USER)
 
   agendamentos Agendamento[]
-
-  @@map("users") 
+  vendas       Venda[]     @relation("ClienteVendas")
+  @@map("users")
 }
 
 model Servico {
-  id          String    @id @default(uuid())
-  nome        String    @db.VarChar(100)
-  descricao   String
-  preco       Float
+  id           String               @id @default(uuid())
+  nome         String               @db.VarChar(100)
+  descricao    String
+  preco        Float
 
   agendamentos AgendamentoServico[]
 
@@ -43,13 +44,13 @@ model Servico {
 }
 
 model Agendamento {
-  id              String   @id @default(uuid())
+  id              String               @id @default(uuid())
   userId          String
   dataAgendamento DateTime
-  status          StatusAgendamento @default(PENDENTE)
+  status          StatusAgendamento   @default(PENDENTE)
 
-  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  servicos       AgendamentoServico[]
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  servicos        AgendamentoServico[]
 
   @@map("agendamentos")
 }
@@ -58,9 +59,49 @@ model AgendamentoServico {
   agendamentoId String
   servicoId     String
 
-  agendamento Agendamento @relation(fields: [agendamentoId], references: [id], onDelete: Cascade)
-  servico     Servico     @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  agendamento   Agendamento  @relation(fields: [agendamentoId], references: [id], onDelete: Cascade)
+  servico       Servico      @relation(fields: [servicoId], references: [id], onDelete: Cascade)
 
   @@id([agendamentoId, servicoId])
   @@map("agendamento_servico")
+}
+
+model Produto {
+  id          Int         @id @default(autoincrement())
+  nome        String      @db.VarChar(100)
+  descricao   String
+  preco       Float
+  estoque     Int
+  deletado    Boolean     @default(false) @map("D_E_L_E_T_")
+
+  itensVenda  ItemVenda[]
+
+  @@map("produtos")
+}
+
+model Venda {
+  id          Int         @id @default(autoincrement())
+  clienteId    String
+  cliente      User        @relation("ClienteVendas", fields: [clienteId], references: [id], onDelete: Cascade)
+  dataVenda   DateTime    @default(now())
+  total       Float
+  deletado    Boolean     @default(false) @map("D_E_L_E_T_")
+
+  itens       ItemVenda[]
+
+  @@map("vendas")
+}
+
+model ItemVenda {
+  id             Int       @id @default(autoincrement())
+  vendaId        Int
+  produtoId      Int
+  quantidade     Int
+  precoUnitario  Float
+  deletado       Boolean   @default(false) @map("D_E_L_E_T_")
+
+  venda          Venda     @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  produto        Produto   @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@map("itens_venda")
 }
