@@ -3,8 +3,16 @@ import { PrismaClient } from "@prisma/client";
 import { withCORS } from "@/lib/cors";
 
 const prisma = new PrismaClient();
-interface ServicoParams {
-  params: { id: string };
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }
 
 export async function GET() {
@@ -21,13 +29,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { nome, descricao, preco }: { nome: string; descricao: string; preco: number } =
-      await req.json();
+    const { nome, descricao, preco }: { nome: string; descricao: string; preco: number } = await req.json();
 
     if (!nome || !descricao || preco === undefined) {
-      return NextResponse.json(
-        { message: "Todos os campos são obrigatórios" },
-        { status: 400 }
+      return withCORS(
+        NextResponse.json({ message: "Todos os campos são obrigatórios" }, { status: 400 })
       );
     }
 
