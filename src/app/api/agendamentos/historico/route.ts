@@ -41,3 +41,7 @@ export async function GET(req: NextRequest) {
     return withCORS(NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 }));
   }
 }
+
+export async function OPTIONS(req: NextRequest) {
+  return withCORS(NextResponse.json({}, { status: 204 }));
+}
