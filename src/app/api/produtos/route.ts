@@ -21,6 +21,7 @@ export async function GET() {
     const produtos = await prisma.produto.findMany({
       where: { deletado: false },
       orderBy: { id: "asc" },
+      include: { imagens: true }, // inclui imagens
     });
     return withCORS(NextResponse.json(produtos));
   } catch (err: any) {
@@ -31,14 +32,25 @@ export async function GET() {
 // POST /api/produtos
 export async function POST(req: Request) {
   try {
-    const { nome, descricao, preco, estoque } = await req.json();
+    const { nome, descricao, preco, estoque, imagens } = await req.json();
 
     if (!nome || !descricao || !preco || estoque == null) {
-      return withCORS(NextResponse.json({ error: "Todos os campos são obrigatórios" }, { status: 400 }));
+      return withCORS(
+        NextResponse.json({ error: "Todos os campos são obrigatórios" }, { status: 400 })
+      );
     }
 
     const produto = await prisma.produto.create({
-      data: { nome, descricao, preco, estoque },
+      data: {
+        nome,
+        descricao,
+        preco,
+        estoque,
+        imagens: imagens && imagens.length > 0 
+          ? { create: imagens.map((url: string) => ({ url })) }
+          : undefined,
+      },
+      include: { imagens: true },
     });
 
     return withCORS(NextResponse.json(produto, { status: 201 }));

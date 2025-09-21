@@ -8,46 +8,61 @@ export async function OPTIONS() {
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
 }
 
+// PATCH /api/servicos/:id
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
-    try {
-      const { id } = await context.params;
-  
-      if (!id) {
-        return withCORS(NextResponse.json({ message: "ID do serviço não fornecido" }, { status: 400 }));
-      }
-  
-      const data = await request.json();
-  
-      const servicoAtualizado = await prisma.servico.update({
-        where: { id },
-        data,
-      });
-  
-      return withCORS(NextResponse.json(servicoAtualizado));
-    } catch (error) {
-      return withCORS(NextResponse.json({ message: "Erro ao atualizar serviço", error }, { status: 500 }));
-    }
-  }
+  try {
+    const { id } = await context.params;
 
-  export async function DELETE(req: NextRequest,  context: { params: Promise<{ id: string }> }) {
-    try {
-      const { id } = await context.params;
-
-      await prisma.servico.delete({ where: { id } });
-  
-      return withCORS(NextResponse.json({ message: "Serviço excluído com sucesso" }));
-    } catch (error) {
-      return withCORS(NextResponse.json(
-        { message: "Erro ao excluir serviço", error },
-        { status: 500 }
-      ));
+    if (!id) {
+      return withCORS(NextResponse.json({ message: "ID do serviço não fornecido" }, { status: 400 }));
     }
+
+    const { nome, descricao, preco, imagens } = await request.json();
+
+    const servicoAtualizado = await prisma.servico.update({
+      where: { id },
+      data: {
+        nome,
+        descricao,
+        preco,
+        ...(imagens
+          ? {
+              imagens: {
+                deleteMany: {}, // remove todas as imagens antigas
+                create: imagens.map((url: string) => ({ url })),
+              },
+            }
+          : {}),
+      },
+      include: { imagens: true },
+    });
+
+    return withCORS(NextResponse.json(servicoAtualizado));
+  } catch (error) {
+    return withCORS(
+      NextResponse.json({ message: "Erro ao atualizar serviço", error }, { status: 500 })
+    );
   }
-  
+}
+
+// DELETE /api/servicos/:id
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await context.params;
+
+    await prisma.servico.delete({ where: { id } });
+
+    return withCORS(NextResponse.json({ message: "Serviço excluído com sucesso" }));
+  } catch (error) {
+    return withCORS(
+      NextResponse.json({ message: "Erro ao excluir serviço", error }, { status: 500 })
+    );
+  }
+}

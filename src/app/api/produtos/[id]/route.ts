@@ -21,6 +21,7 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     const { id } = await context.params;
     const produto = await prisma.produto.findUnique({
       where: { id: Number(id) },
+      include: { imagens: true },
     });
 
     if (!produto || produto.deletado) {
@@ -36,11 +37,26 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
 // PUT /api/produtos/:id
 export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { nome, descricao, preco, estoque } = await req.json();
+    const { nome, descricao, preco, estoque, imagens } = await req.json();
     const { id } = await context.params;
+
     const produto = await prisma.produto.update({
       where: { id: Number(id) },
-      data: { nome, descricao, preco, estoque },
+      data: {
+        nome,
+        descricao,
+        preco,
+        estoque,
+        ...(imagens
+          ? {
+              imagens: {
+                deleteMany: {}, // remove todas as imagens antigas
+                create: imagens.map((url: string) => ({ url })), // adiciona novas
+              },
+            }
+          : {}),
+      },
+      include: { imagens: true },
     });
 
     return withCORS(NextResponse.json(produto));

@@ -38,11 +38,21 @@ model Servico {
   descricao    String
   preco        Float
 
+  imagens      ServicoImagem[]      // relação com as imagens
   agendamentos AgendamentoServico[]
 
   @@map("servicos")
 }
 
+model ServicoImagem {
+  id         Int      @id @default(autoincrement())
+  servicoId  String
+  url        String   @db.VarChar(255)
+
+  servico    Servico  @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+
+  @@map("servico_imagens")
+}
 model Agendamento {
   id              String               @id @default(uuid())
   userId          String
@@ -74,9 +84,20 @@ model Produto {
   estoque     Int
   deletado    Boolean     @default(false) @map("D_E_L_E_T_")
 
+  imagens     ProdutoImagem[]
   itensVenda  ItemVenda[]
 
   @@map("produtos")
+}
+
+model ProdutoImagem {
+  id         Int      @id @default(autoincrement())
+  produtoId  Int
+  url        String   @db.VarChar(255)
+
+  produto    Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@map("produto_imagens")
 }
 
 model Venda {
