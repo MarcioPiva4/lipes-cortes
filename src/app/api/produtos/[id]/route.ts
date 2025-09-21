@@ -1,3 +1,4 @@
+import { withCORS } from '@/lib/cors';
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from "next/server";
 
@@ -23,12 +24,12 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     });
 
     if (!produto || produto.deletado) {
-      return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
+      return withCORS(NextResponse.json({ error: "Produto não encontrado" }, { status: 404 }));
     }
 
-    return NextResponse.json(produto);
+    return withCORS(NextResponse.json(produto));
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCORS(NextResponse.json({ error: err.message }, { status: 500 }));
   }
 }
 
@@ -42,9 +43,9 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
       data: { nome, descricao, preco, estoque },
     });
 
-    return NextResponse.json(produto);
+    return withCORS(NextResponse.json(produto));
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCORS(NextResponse.json({ error: err.message }, { status: 500 }));
   }
 }
 
@@ -57,8 +58,8 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
       data: { deletado: true },
     });
 
-    return NextResponse.json({ message: "Produto excluído com sucesso" });
+    return withCORS(NextResponse.json({ message: "Produto excluído com sucesso" }));
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCORS(NextResponse.json({ error: err.message }, { status: 500 }));
   }
 }

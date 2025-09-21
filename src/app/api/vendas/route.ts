@@ -1,3 +1,4 @@
+import { withCORS } from '@/lib/cors';
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from "next/server";
 
@@ -25,9 +26,9 @@ export async function GET() {
       },
       orderBy: { dataVenda: "desc" },
     });
-    return NextResponse.json(vendas);
+    return withCORS(NextResponse.json(vendas));
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCORS(NextResponse.json({ error: err.message }, { status: 500 }));
   }
 }
 
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
     // itens: [{ produtoId, quantidade }]
 
     if (!clienteId || !itens || itens.length === 0) {
-      return NextResponse.json({ error: "Cliente e itens são obrigatórios" }, { status: 400 });
+      return withCORS(NextResponse.json({ error: "Cliente e itens são obrigatórios" }, { status: 400 }));
     }
 
     let total = 0;
@@ -50,11 +51,11 @@ export async function POST(req: Request) {
       });
 
       if (!produto || produto.deletado) {
-        return NextResponse.json({ error: `Produto ${item.produtoId} não encontrado` }, { status: 404 });
+        return withCORS(NextResponse.json({ error: `Produto ${item.produtoId} não encontrado` }, { status: 404 }));
       }
 
       if (produto.estoque < item.quantidade) {
-        return NextResponse.json({ error: `Estoque insuficiente para ${produto.nome}` }, { status: 400 });
+        return withCORS(NextResponse.json({ error: `Estoque insuficiente para ${produto.nome}` }, { status: 400 }));
       }
 
       total += produto.preco * item.quantidade;
@@ -81,8 +82,8 @@ export async function POST(req: Request) {
       include: { itens: { include: { produto: true } } },
     });
 
-    return NextResponse.json(venda, { status: 201 });
+    return withCORS(NextResponse.json(venda, { status: 201 }));
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCORS(NextResponse.json({ error: err.message }, { status: 500 }));
   }
 }

@@ -1,3 +1,4 @@
+import { withCORS } from '@/lib/cors';
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from "next/server";
 
@@ -21,9 +22,9 @@ export async function GET() {
       where: { deletado: false },
       orderBy: { id: "asc" },
     });
-    return NextResponse.json(produtos);
+    return withCORS(NextResponse.json(produtos));
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCORS(NextResponse.json({ error: err.message }, { status: 500 }));
   }
 }
 
@@ -33,15 +34,15 @@ export async function POST(req: Request) {
     const { nome, descricao, preco, estoque } = await req.json();
 
     if (!nome || !descricao || !preco || estoque == null) {
-      return NextResponse.json({ error: "Todos os campos são obrigatórios" }, { status: 400 });
+      return withCORS(NextResponse.json({ error: "Todos os campos são obrigatórios" }, { status: 400 }));
     }
 
     const produto = await prisma.produto.create({
       data: { nome, descricao, preco, estoque },
     });
 
-    return NextResponse.json(produto, { status: 201 });
+    return withCORS(NextResponse.json(produto, { status: 201 }));
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCORS(NextResponse.json({ error: err.message }, { status: 500 }));
   }
 }

@@ -1,3 +1,4 @@
+import { withCORS } from '@/lib/cors';
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from "next/server";
 
@@ -24,12 +25,12 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     });
 
     if (!venda || venda.deletado) {
-      return NextResponse.json({ error: "Venda não encontrada" }, { status: 404 });
+      return withCORS(NextResponse.json({ error: "Venda não encontrada" }, { status: 404 }));
     }
 
-    return NextResponse.json(venda);
+    return withCORS(NextResponse.json(venda));
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCORS(NextResponse.json({ error: err.message }, { status: 500 }));
   }
 }
 
@@ -43,7 +44,7 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
     });
 
     if (!venda || venda.deletado) {
-      return NextResponse.json({ error: "Venda não encontrada" }, { status: 404 });
+      return withCORS(NextResponse.json({ error: "Venda não encontrada" }, { status: 404 }));
     }
 
     // Devolve estoque
@@ -59,8 +60,8 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
       data: { deletado: true },
     });
 
-    return NextResponse.json({ message: "Venda cancelada e estoque devolvido" });
+    return withCORS(NextResponse.json({ message: "Venda cancelada e estoque devolvido" }));
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return withCORS(NextResponse.json({ error: err.message }, { status: 500 }));
   }
 }
