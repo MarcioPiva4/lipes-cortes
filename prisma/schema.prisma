@@ -48,12 +48,13 @@ model Servico {
 model ServicoImagem {
   id         Int      @id @default(autoincrement())
   servicoId  String
-  url        String   @db.VarChar(255)
+  url        String   @db.Text  // Agora suporta Base64
 
   servico    Servico  @relation(fields: [servicoId], references: [id], onDelete: Cascade)
 
   @@map("servico_imagens")
 }
+
 model Agendamento {
   id              String               @id @default(uuid())
   userId          String
@@ -94,7 +95,7 @@ model Produto {
 model ProdutoImagem {
   id         Int      @id @default(autoincrement())
   produtoId  Int
-  url        String   @db.VarChar(255)
+  url        String   @db.Text  // Agora suporta Base64
 
   produto    Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
 
