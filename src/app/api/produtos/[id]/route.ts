@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client/extension";
+import { PrismaClient } from '@prisma/client';
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
@@ -15,10 +15,11 @@ export async function OPTIONS() {
 }
 
 // GET /api/produtos/:id
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params;
     const produto = await prisma.produto.findUnique({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
     });
 
     if (!produto || produto.deletado) {
@@ -32,12 +33,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 // PUT /api/produtos/:id
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { nome, descricao, preco, estoque } = await req.json();
-
+    const { id } = await context.params;
     const produto = await prisma.produto.update({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
       data: { nome, descricao, preco, estoque },
     });
 
@@ -48,10 +49,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // DELETE /api/produtos/:id  (soft delete)
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params;
     await prisma.produto.update({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
       data: { deletado: true },
     });
 

@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client/extension";
+import { PrismaClient } from '@prisma/client';
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
@@ -15,10 +15,11 @@ export async function OPTIONS() {
 }
 
 // GET /api/vendas/:id
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params;
     const venda = await prisma.venda.findUnique({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
       include: { cliente: true, itens: { include: { produto: true } } },
     });
 
@@ -33,10 +34,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 // DELETE /api/vendas/:id  (cancelar e devolver estoque)
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params;
     const venda = await prisma.venda.findUnique({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
       include: { itens: true },
     });
 
@@ -53,7 +55,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     }
 
     await prisma.venda.update({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
       data: { deletado: true },
     });
 
