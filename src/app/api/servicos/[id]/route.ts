@@ -24,7 +24,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       return withCORS(NextResponse.json({ message: "ID do serviço não fornecido" }, { status: 400 }));
     }
 
-    const { nome, descricao, preco, imagens } = await request.json();
+    const { nome, descricao, preco, duracao, imagens } = await request.json();
 
     const servicoAtualizado = await prisma.servico.update({
       where: { id },
@@ -32,6 +32,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         nome,
         descricao,
         preco,
+        duracao,
         ...(imagens
           ? {
               imagens: {

@@ -32,10 +32,10 @@ export async function GET() {
 // POST /api/servicos
 export async function POST(req: NextRequest) {
   try {
-    const { nome, descricao, preco, imagens }: 
-      { nome: string; descricao: string; preco: number; imagens?: string[] } = await req.json();
+    const { nome, descricao, preco, duracao, imagens }: 
+      { nome: string; descricao: string; preco: number; duracao: number; imagens?: string[] } = await req.json();
 
-    if (!nome || !descricao || preco === undefined) {
+    if (!nome || !descricao || preco === undefined || !duracao) {
       return withCORS(
         NextResponse.json({ message: "Todos os campos são obrigatórios" }, { status: 400 })
       );
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
         nome,
         descricao,
         preco,
+        duracao,
         imagens: imagens && imagens.length > 0 
           ? { create: imagens.map((url) => ({ url })) }
           : undefined,

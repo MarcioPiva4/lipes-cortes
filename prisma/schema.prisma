@@ -37,6 +37,7 @@ model Servico {
   nome         String               @db.VarChar(100)
   descricao    String
   preco        Float
+  duracao      Int?                 @default(30)
 
   imagens      ServicoImagem[]      // relação com as imagens
   agendamentos AgendamentoServico[]
