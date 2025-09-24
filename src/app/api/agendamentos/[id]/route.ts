@@ -36,51 +36,70 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
   try {
     const { id } = await context.params;
     const body = await req.json();
-    
-    if (!body.novaData) {
-      return withCORS(NextResponse.json({ error: "Data inválida" }, { status: 400 }));
+
+    const { novaData, servicoIds } = body;
+
+    // Validação da data, se fornecida
+    if (novaData) {
+      const dataAgendamento = new Date(novaData);
+      if (isNaN(dataAgendamento.getTime())) {
+        return withCORS(NextResponse.json({ error: "Formato de data inválido" }, { status: 400 }));
+      }
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      if (dataAgendamento <= hoje) {
+        return withCORS(NextResponse.json({ error: "Não é possível agendar para hoje ou dias passados" }, { status: 400 }));
+      }
+
+      const diaSemana = dataAgendamento.getDay();
+      if (diaSemana === 0 || diaSemana === 6) {
+        return withCORS(NextResponse.json({ error: "Agendamentos não são permitidos aos finais de semana" }, { status: 400 }));
+      }
+
+      const hora = dataAgendamento.getHours();
+      if (hora < 8 || hora > 18) {
+        return withCORS(NextResponse.json({ error: "Horário fora do expediente (08:00 - 18:00)" }, { status: 400 }));
+      }
+
+      const conflito = await prisma.agendamento.findFirst({
+        where: { dataAgendamento },
+      });
+
+      if (conflito && conflito.id !== id) {
+        return withCORS(NextResponse.json({ error: "Já existe um agendamento para esse horário" }, { status: 400 }));
+      }
+
+      await prisma.agendamento.update({
+        where: { id },
+        data: { dataAgendamento },
+      });
     }
 
-    const dataAgendamento = new Date(body.novaData);
+    // Atualiza os serviços associados (se fornecidos)
+    if (servicoIds && Array.isArray(servicoIds)) {
+      // Remove os serviços antigos
+      await prisma.agendamentoServico.deleteMany({
+        where: { agendamentoId: id },
+      });
 
-    if (isNaN(dataAgendamento.getTime())) {
-      return withCORS(NextResponse.json({ error: "Formato de data inválido" }, { status: 400 }));
+      // Adiciona os novos
+      const novosServicos = servicoIds.map((servicoId: string) => ({
+        agendamentoId: id,
+        servicoId,
+      }));
+
+      await prisma.agendamentoServico.createMany({
+        data: novosServicos,
+      });
     }
 
-    // Definir o início do dia de hoje para comparação
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0); 
-
-    // Bloquear agendamentos para hoje e dias anteriores
-    if (dataAgendamento <= hoje) {
-      return withCORS(NextResponse.json({ error: "Não é possível agendar para hoje ou dias passados" }, { status: 400 }));
-    }
-
-    // Bloquear agendamentos aos sábados e domingos
-    const diaSemana = dataAgendamento.getDay();
-    if (diaSemana === 0 || diaSemana === 6) {
-      return withCORS(NextResponse.json({ error: "Agendamentos não são permitidos aos finais de semana" }, { status: 400 }));
-    }
-
-    // Bloquear horários fora do expediente
-    const hora = dataAgendamento.getHours();
-    if (hora < 8 || hora > 18) {
-      return withCORS(NextResponse.json({ error: "Horário fora do expediente (08:00 - 18:00)" }, { status: 400 }));
-    }
-
-    // Verificar se já existe um agendamento para o mesmo horário
-    const conflito = await prisma.agendamento.findFirst({
-      where: { dataAgendamento },
-    });
-
-    if (conflito) {
-      return withCORS(NextResponse.json({ error: "Já existe um agendamento para esse horário" }, { status: 400 }));
-    }
-
-    // Atualizar o agendamento
-    const agendamentoAtualizado = await prisma.agendamento.update({
+    const agendamentoAtualizado = await prisma.agendamento.findUnique({
       where: { id },
-      data: { dataAgendamento },
+      include: {
+        servicos: { include: { servico: true } },
+      },
     });
 
     return withCORS(NextResponse.json(agendamentoAtualizado, { status: 200 }));
@@ -89,3 +108,4 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
     return withCORS(NextResponse.json({ error: "Erro interno no servidor" }, { status: 500 }));
   }
 }
+
